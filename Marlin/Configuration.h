@@ -21,7 +21,6 @@
  */
 #pragma once
 
-//#define CONFIG_EXAMPLES_DIR "Tronxy/X5SA-PRO"
 
 /**
  * Configuration.h
@@ -73,8 +72,6 @@
   #define MOTHERBOARD BOARD_TRONXY_CXY_446_V10
 #endif
 
-// @section serial
-
 /**
  * Select the serial port on the board to use for communication with the host.
  * This allows the connection of wireless adapters (for instance) to non-default port pins.
@@ -89,6 +86,7 @@
  * Serial Port Baud Rate
  * This is the default communication speed for all serial ports.
  * Set the baud rate defaults for additional serial ports below.
+#define SERIAL_PORT_2 3
  *
  * 250000 works in most cases, but you might try a lower speed if
  * you commonly experience drop-outs during host printing.
@@ -97,6 +95,7 @@
  * :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000]
  */
 #define BAUDRATE 115200
+//#define BAUDRATE 250000
 
 //#define BAUD_RATE_GCODE     // Enable G-code M575 to set the baud rate
 
@@ -134,6 +133,15 @@
 // Printer's unique ID, used by some programs to differentiate between machines.
 // Choose your own or use a service like https://www.uuidgenerator.net/version4
 //#define MACHINE_UUID "00000000-0000-0000-0000-000000000000"
+
+
+
+//Ui Theme Changer
+//#define TFT_CLASSIC_UI
+#define TFT_COLOR_UI
+//#define TFT_LVGL_UI
+
+
 
 // @section stepper drivers
 
@@ -657,13 +665,13 @@
   #if ENABLED(PID_PARAMS_PER_HOTEND)
     // Specify up to one value per hotend here, according to your setup.
     // If there are fewer values, the last one applies to the remaining hotends.
-    #define DEFAULT_Kp_LIST {  22.20,  22.20 }
-    #define DEFAULT_Ki_LIST {   1.08,   1.08 }
-    #define DEFAULT_Kd_LIST { 114.00, 114.00 }
+    #define DEFAULT_KP_LIST {  22.20,  22.20 }
+    #define DEFAULT_KI_LIST {   1.08,   1.08 }
+    #define DEFAULT_KD_LIST { 114.00, 114.00 }
   #else
-    #define DEFAULT_Kp  16.73
-    #define DEFAULT_Ki   1.05
-    #define DEFAULT_Kd  66.74
+    #define DEFAULT_KP  16.73
+    #define DEFAULT_KI   1.05
+    #define DEFAULT_KD  66.74
   #endif
 #else
   #define BANG_MAX 255    // Limit hotend current while in bang-bang mode; 255=full current
@@ -751,9 +759,9 @@
 
   // 120V 250W silicone heater into 4mm borosilicate (MendelMax 1.5+)
   // from FOPDT model - kp=.39 Tp=405 Tdead=66, Tc set to 79.2, aggressive factor of .15 (vs .1, 1, 10)
-  #define DEFAULT_bedKp 306.00
-  #define DEFAULT_bedKi 50.22
-  #define DEFAULT_bedKd 1243.06
+  #define DEFAULT_BED_KP 306.00
+  #define DEFAULT_BED_KI 50.22
+  #define DEFAULT_BED_KD 1243.06
 
   // FIND YOUR OWN: "M303 E-1 C8 S90" to run autotune on the bed at 90 degreesC for 8 cycles.
 #else
@@ -863,7 +871,7 @@
 //============================= Mechanical Settings =========================
 //===========================================================================
 
-// @section kinematics
+// @section machine
 
 // Enable one of the options below for CoreXY, CoreXZ, or CoreYZ kinematics,
 // either in the usual order or reversed
@@ -878,15 +886,6 @@
 
 // Enable for a belt style printer with endless "Z" motion
 //#define BELTPRINTER
-
-// Articulated robot (arm). Joints are directly mapped to axes with no kinematics.
-//#define ARTICULATED_ROBOT_ARM
-
-// For a hot wire cutter with parallel horizontal axes (X, I) where the heights of the two wire
-// ends are controlled by parallel axes (Y, J). Joints are directly mapped to axes (no kinematics).
-//#define FOAMCUTTER_XYUV
-
-// @section polargraph
 
 // Enable for Polargraph Kinematics
 //#define POLARGRAPH
@@ -1081,6 +1080,15 @@
   #define FEEDRATE_SCALING                  // Convert XY feedrate from mm/s to degrees/s on the fly
 #endif
 
+// @section machine
+
+// Articulated robot (arm). Joints are directly mapped to axes with no kinematics.
+//#define ARTICULATED_ROBOT_ARM
+
+// For a hot wire cutter with parallel horizontal axes (X, I) where the heights of the two wire
+// ends are controlled by parallel axes (Y, J). Joints are directly mapped to axes (no kinematics).
+//#define FOAMCUTTER_XYUV
+
 //===========================================================================
 //============================== Endstop Settings ===========================
 //===========================================================================
@@ -1165,20 +1173,22 @@
  * following movement settings. If fewer factors are given than the
  * total number of extruders, the last value applies to the rest.
  */
-//#define DISTINCT_E_FACTORS
+#define DISTINCT_E_FACTORS
 
 /**
  * Default Axis Steps Per Unit (linear=steps/mm, rotational=steps/°)
  * Override with M92 (when enabled below)
  *                                      X, Y, Z [, I [, J [, K...]]], E0 [, E1[, E2...]]
+ * #define DEFAULT_AXIS_STEPS_PER_UNIT   {  160.0, 160.0, 800.0, 824.0 }
  */
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {  160.0, 160.0, 800.0, 824.0 }
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {  160.0, 160.0, 800.0, 876.0 }
 
 
 /**
  * Enable support for M92. Disable to save at least ~530 bytes of flash.
  */
 #define EDITABLE_STEPS_PER_UNIT
+
 
 /**
  * Default Max Feed Rate (linear=mm/s, rotational=°/s)
@@ -1202,7 +1212,7 @@
 
 #define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
 #if ENABLED(LIMITED_MAX_ACCEL_EDITING)
-  #define MAX_ACCEL_EDIT_VALUES       { 3000, 3000, 200, 10000 } // ...or, set your own edit limits
+  #define MAX_ACCEL_EDIT_VALUES       { 1000, 1000, 200, 2000 } // ...or, set your own edit limits
 #endif
 
 /**
@@ -1215,7 +1225,7 @@
  *   M204 I    Angular Acceleration
  *   M204 J    Angular Travel Acceleration
  */
-#define DEFAULT_ACCELERATION                  500  // X, Y, Z ... and E acceleration for printing moves
+#define DEFAULT_ACCELERATION                  1000  // X, Y, Z ... and E acceleration for printing moves. Defaullt 500
 #define DEFAULT_RETRACT_ACCELERATION          800  // E acceleration for retracts
 #define DEFAULT_TRAVEL_ACCELERATION           1000  // X, Y, Z ... acceleration for travel (non printing) moves
 #if ENABLED(AXIS4_ROTATES)
@@ -1233,8 +1243,8 @@
  */
 #define CLASSIC_JERK
 #if ENABLED(CLASSIC_JERK)
-  #define DEFAULT_XJERK 8.0
-  #define DEFAULT_YJERK 8.0
+  #define DEFAULT_XJERK 12.0   //default 8.0
+  #define DEFAULT_YJERK 12.0   //default 8.0
   #define DEFAULT_ZJERK  0.4
 
   //#define TRAVEL_EXTRA_XYJERK 0.0     // Additional jerk allowance for all travel moves
@@ -1245,8 +1255,8 @@
   #endif
 #endif
 
-//#define DEFAULT_EJERK    10.0   // May be used by Linear Advance
-#define DEFAULT_EJERK    12.0  // Tronxy default
+//#define DEFAULT_EJERK    12.0   // May be used by Linear Advance
+#define DEFAULT_EJERK    10.0  // Tronxy default
 
 /**
  * Junction Deviation Factor
@@ -1323,7 +1333,9 @@
  * A Fix-Mounted Probe either doesn't deploy or needs manual deployment.
  *   (e.g., an inductive probe or a nozzle-based probe-switch.)
  */
-#define FIX_MOUNTED_PROBE
+#ifndef TFT_LVGL_UI
+  #define FIX_MOUNTED_PROBE
+#endif  
 
 /**
  * Use the nozzle as the probe, as with a conductive
@@ -1525,7 +1537,8 @@
 #define Z_PROBE_FEEDRATE_FAST (4*60)
 
 // Feedrate (mm/min) for the "accurate" probe of each point
-#define Z_PROBE_FEEDRATE_SLOW (Z_PROBE_FEEDRATE_FAST / 2)
+//#define Z_PROBE_FEEDRATE_SLOW (Z_PROBE_FEEDRATE_FAST / 2)
+#define Z_PROBE_FEEDRATE_SLOW (1*60)
 
 /**
  * Probe Activation Switch
@@ -1634,7 +1647,6 @@
 #endif
 
 // For Inverting Stepper Enable Pins (Active Low) use 0, Non Inverting (Active High) use 1
-<<<<<<< HEAD
 // :{ 0:'Low', 1:'High' }
 #define X_ENABLE_ON 0
 #define Y_ENABLE_ON 0
@@ -1643,19 +1655,6 @@
 #if TAOLI_SERIAL
   #define I_ENABLE_ON 0
 #endif
-=======
-// :['LOW', 'HIGH']
-#define X_ENABLE_ON LOW
-#define Y_ENABLE_ON LOW
-#define Z_ENABLE_ON LOW
-#define E_ENABLE_ON LOW // For all extruders
-//#define I_ENABLE_ON LOW
-//#define J_ENABLE_ON LOW
-//#define K_ENABLE_ON LOW
-//#define U_ENABLE_ON LOW
-//#define V_ENABLE_ON LOW
-//#define W_ENABLE_ON LOW
->>>>>>> upstream/bugfix-2.1.x
 
 // Disable axis steppers immediately when they're not being stepped.
 // WARNING: When motors turn off there is a chance of losing position accuracy!
@@ -1803,7 +1802,11 @@
   // Commands to execute on filament runout.
   // With multiple runout sensors use the %c placeholder for the current tool in commands (e.g., "M600 T%c")
   // NOTE: After 'M412 H1' the host handles filament runout and this script does not apply.
-  #define FILAMENT_RUNOUT_SCRIPT "M600"
+  #ifndef TFT_LVGL_UI
+    #define FILAMENT_RUNOUT_SCRIPT "M600"
+  #else
+    #define FILAMENT_RUNOUT_SCRIPT "M25"
+  #endif
 
   // After a runout is detected, continue printing this length of filament
   // before executing the runout script. Useful for a sensor at the end of
@@ -1874,11 +1877,14 @@
  *   leveling in steps so you can manually adjust the Z height at each grid-point.
  *   With an LCD controller the process is guided step-by-step.
  */
-//#define AUTO_BED_LEVELING_3POINT
-//#define AUTO_BED_LEVELING_LINEAR
-#define AUTO_BED_LEVELING_BILINEAR
-//#define AUTO_BED_LEVELING_UBL
-//#define MESH_BED_LEVELING
+
+#ifndef TFT_LVGL_UI
+  //#define AUTO_BED_LEVELING_3POINT
+  //#define AUTO_BED_LEVELING_LINEAR
+  #define AUTO_BED_LEVELING_BILINEAR
+  //#define AUTO_BED_LEVELING_UBL
+  //#define MESH_BED_LEVELING
+#endif
 
 /**
  * Commands to execute at the start of G29 probing,
@@ -2051,7 +2057,9 @@
  * Add a bed leveling sub-menu for ABL or MBL.
  * Include a guided procedure if manual probing is enabled.
  */
-#define LCD_BED_LEVELING
+#ifndef TFT_LVGL_UI
+  #define LCD_BED_LEVELING
+#endif
 
 #if ENABLED(LCD_BED_LEVELING)
   #define MESH_EDIT_Z_STEP  0.025 // (mm) Step size while manually probing Z axis.
@@ -2060,7 +2068,9 @@
 #endif
 
 // Add a menu item to move between bed corners for manual bed adjustment
-#define LCD_BED_TRAMMING
+#ifndef TFT_LVGL_UI
+  #define LCD_BED_TRAMMING
+#endif  
 
 #if ENABLED(LCD_BED_TRAMMING)
   #define BED_TRAMMING_INSET_LFRB { 50, 50, 50, 50 } // (mm) Left, Front, Right, Back insets
@@ -2512,7 +2522,7 @@ IIC_BL24CXX_EEPROM
  * SD Card support is disabled by default. If your controller has an SD slot,
  * you must uncomment the following option or it won't work.
  */
-//#define SDSUPPORT
+#define SDSUPPORT
 #define HAS_MEDIA 1
  
 
@@ -2772,7 +2782,7 @@ IIC_BL24CXX_EEPROM
  *   root of your SD card, together with the compiled firmware.
  */
 //#define TFT_CLASSIC_UI
-#define TFT_COLOR_UI
+//#define TFT_COLOR_UI
 //#define TFT_LVGL_UI
 
 #if ENABLED(TFT_COLOR_UI)
@@ -2811,8 +2821,6 @@ IIC_BL24CXX_EEPROM
  *   TFT_ROTATE_180, TFT_ROTATE_180_MIRROR_X, TFT_ROTATE_180_MIRROR_Y,
  *   TFT_ROTATE_270, TFT_ROTATE_270_MIRROR_X, TFT_ROTATE_270_MIRROR_Y,
  *   TFT_MIRROR_X, TFT_MIRROR_Y, TFT_NO_ROTATION
- *
- * :{ 'TFT_NO_ROTATION':'None', 'TFT_ROTATE_90':'90°', 'TFT_ROTATE_90_MIRROR_X':'90° (Mirror X)', 'TFT_ROTATE_90_MIRROR_Y':'90° (Mirror Y)', 'TFT_ROTATE_180':'180°', 'TFT_ROTATE_180_MIRROR_X':'180° (Mirror X)', 'TFT_ROTATE_180_MIRROR_Y':'180° (Mirror Y)', 'TFT_ROTATE_270':'270°', 'TFT_ROTATE_270_MIRROR_X':'270° (Mirror X)', 'TFT_ROTATE_270_MIRROR_Y':'270° (Mirror Y)', 'TFT_MIRROR_X':'Mirror X', 'TFT_MIRROR_Y':'Mirror Y' }
  */
 //#define TFT_ROTATION TFT_NO_ROTATION
 
@@ -2838,7 +2846,9 @@ IIC_BL24CXX_EEPROM
   #define BUTTON_DELAY_MENU     250 // (ms) Button repeat delay for menus
 
   //#define DISABLE_ENCODER         // Disable the click encoder, if any
-  #define DISPLAY_SLEEP_MINUTES 5 // (minutes) Display Sleep after a period of inactivity. Set with M255 S.
+  #if ENABLED(TFT_COLOR_UI)
+    #define DISPLAY_SLEEP_MINUTES 5 // (minutes) Display Sleep after a period of inactivity. Set with M255 S.
+  #endif  
 
   #define TOUCH_SCREEN_CALIBRATION //command M995 for manual calibration
 
@@ -3020,3 +3030,11 @@ IIC_BL24CXX_EEPROM
 
 // Disable servo with M282 to reduce power consumption, noise, and heat when not in use
 //#define SERVO_DETACH_GCODE
+
+
+//bug error: 'SPEED_EDIT_MIN' was not declared in this scope
+#ifndef TFT_LVGL_UI
+ #define HAS_FEEDRATE_EDIT 1
+ #define HAS_FLOW_EDIT 1
+#endif
+

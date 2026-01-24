@@ -87,6 +87,7 @@
 #define SDIO_D3_PIN                         PC11
 #define SDIO_CK_PIN                         PC12
 #define SDIO_CMD_PIN                        PD2
+#define HAS_OTG_USB_HOST_SUPPORT  // USB Flash Drive Support
 
 //
 // Limit Switches
