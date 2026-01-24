@@ -49,9 +49,6 @@ bool EmergencyParser::killed_by_M112, // = false
 // Global instance
 EmergencyParser emergency_parser;
 
-// External references
-extern bool wait_for_user, wait_for_heatup;
-
 #if ENABLED(EP_BABYSTEPPING)
   #include "babystep.h"
 #endif
@@ -61,6 +58,10 @@ extern bool wait_for_user, wait_for_heatup;
   void report_current_position_moving();
   void quickpause_stepper();
   void quickresume_stepper();
+#endif
+
+#if ENABLED(SOFT_FEED_HOLD)
+  bool realtime_ramping_pause_flag = false;
 #endif
 
 void EmergencyParser::update(EmergencyParser::State &state, const uint8_t c) {
@@ -153,7 +154,7 @@ void EmergencyParser::update(EmergencyParser::State &state, const uint8_t c) {
     case EP_M4:
       switch (c) {
         case '1' :state = EP_M41;    break;
-        #if ENABLED(FT_MOTION_RESONANCE_TEST)
+        #if ENABLED(FTM_RESONANCE_TEST)
           case '9': state = EP_M49;  break;
         #endif
         default: state  = EP_IGNORE;
@@ -208,7 +209,7 @@ void EmergencyParser::update(EmergencyParser::State &state, const uint8_t c) {
     default:
       if (ISEOL(c)) {
         if (enabled) switch (state) {
-          case EP_M108: wait_for_user = wait_for_heatup = false; break;
+          case EP_M108: marlin.end_waiting(); break;
           case EP_M112: killed_by_M112 = true; break;
           case EP_M410: quickstop_by_M410 = true; break;
           #if ENABLED(FTM_RESONANCE_TEST)
@@ -226,8 +227,8 @@ void EmergencyParser::update(EmergencyParser::State &state, const uint8_t c) {
           #endif
           #if ENABLED(REALTIME_REPORTING_COMMANDS)
             case EP_GRBL_STATUS: report_current_position_moving(); break;
-            case EP_GRBL_PAUSE: quickpause_stepper(); break;
-            case EP_GRBL_RESUME: quickresume_stepper(); break;
+            case EP_GRBL_PAUSE:  TERN(SOFT_FEED_HOLD, realtime_ramping_pause_flag = true,  quickpause_stepper()); break;
+            case EP_GRBL_RESUME: TERN(SOFT_FEED_HOLD, realtime_ramping_pause_flag = false, quickresume_stepper()); break;
           #endif
           #if ENABLED(SOFT_RESET_VIA_SERIAL)
             case EP_KILL: hal.reboot(); break;
