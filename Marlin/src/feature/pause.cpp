@@ -462,7 +462,7 @@ bool pause_print(const float retract, const xyz_pos_t &park_point, const bool sh
   planner.synchronize();
 
   #if ALL(ADVANCED_PAUSE_FANS_PAUSE, HAS_FAN)
-    thermalManager.set_fans_paused(true);
+    Fan::all_pause();
   #endif
 
   // Initial retract before move to filament change position
@@ -539,9 +539,8 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
   first_impatient_beep(max_beep_count);
 
   // Start the heater idle timers
-  const millis_t nozzle_timeout = SEC_TO_MS(PAUSE_PARK_NOZZLE_TIMEOUT);
-
-  HOTEND_LOOP() thermalManager.heater_idle[e].start(nozzle_timeout);
+  constexpr millis_t nozzle_timeout_ms = SEC_TO_MS(PAUSE_PARK_NOZZLE_TIMEOUT);
+  HOTEND_LOOP() thermalManager.heater_idle[e].start(nozzle_timeout_ms);
 
   #if ENABLED(DUAL_X_CARRIAGE)
     const int8_t saved_ext        = motion.extruder;
@@ -595,9 +594,8 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
       show_continue_prompt(is_reload);
 
       // Start the heater idle timers
-      const millis_t nozzle_timeout = SEC_TO_MS(PAUSE_PARK_NOZZLE_TIMEOUT);
-
-      HOTEND_LOOP() thermalManager.heater_idle[e].start(nozzle_timeout);
+      constexpr millis_t nozzle_timeout_ms = SEC_TO_MS(PAUSE_PARK_NOZZLE_TIMEOUT);
+      HOTEND_LOOP() thermalManager.heater_idle[e].start(nozzle_timeout_ms);
 
       TERN_(HOST_PROMPT_SUPPORT, hostui.continue_prompt(GET_TEXT_F(MSG_REHEATDONE)));
       #if ENABLED(EXTENSIBLE_UI)
@@ -764,8 +762,8 @@ void resume_print(
     }
   #endif
 
-  #if ENABLED(ADVANCED_PAUSE_FANS_PAUSE) && HAS_FAN
-    thermalManager.set_fans_paused(false);
+  #if ALL(ADVANCED_PAUSE_FANS_PAUSE, HAS_FAN)
+    Fan::all_resume();
   #endif
 
   TERN_(HAS_FILAMENT_SENSOR, runout.reset());
