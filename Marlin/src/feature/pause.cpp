@@ -217,16 +217,8 @@ bool load_filament(const float slow_load_length/*=0*/, const float fast_load_len
 
     while (marlin.wait_for_user) {
       impatient_beep(max_beep_count);
-      #if ALL(HAS_FILAMENT_SENSOR, FILAMENT_CHANGE_RESUME_ON_INSERT)
-        #if MULTI_FILAMENT_SENSOR
-          #define _CASE_INSERTED(N) case N-1: if (!FILAMENT_IS_OUT(N)) marlin.user_resume(); break;
-          switch (motion.extruder) {
-            REPEAT_1(NUM_RUNOUT_SENSORS, _CASE_INSERTED)
-          }
-        #else
-          if (!FILAMENT_IS_OUT()) marlin.user_resume();
-        #endif
-      #endif
+      if (TERN0(FILAMENT_CHANGE_RESUME_ON_INSERT, !active_filament_is_out()))
+        marlin.user_resume();
       marlin.idle_no_sleep();
     }
   }
@@ -299,7 +291,7 @@ bool load_filament(const float slow_load_length/*=0*/, const float fast_load_len
           KEEPALIVE_STATE(PAUSED_FOR_USER);
           marlin.user_resume();
           pause_menu_response = PAUSE_RESPONSE_WAIT_FOR;
-          #if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI)
+          #if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_JYERSUI)
             ui.pause_show_message(PAUSE_MESSAGE_OPTION); // MarlinUI and MKS UI also set PAUSE_RESPONSE_WAIT_FOR
           #else
             TERN_(SOVOL_SV06_RTS, rts.gotoPage(ID_PurgeMore_L, ID_PurgeMore_D));
@@ -553,8 +545,30 @@ void wait_for_confirmation(const bool is_reload/*=false*/, const int8_t max_beep
   TERN_(HOST_PROMPT_SUPPORT, hostui.continue_prompt(GET_TEXT_F(MSG_NOZZLE_PARKED)));
   TERN_(EXTENSIBLE_UI, ExtUI::onUserConfirmRequired(GET_TEXT_F(MSG_NOZZLE_PARKED)));
   marlin.wait_start();    // LCD click or M108 will clear this
+
+  #if ENABLED(FILAMENT_CHANGE_RESUME_ON_INSERT)
+    // Old filament may still be in the sensor, so wait for it to stay clear before
+    // treating "filament present" as a new insert. This also rides out switch bounce.
+    constexpr millis_t clear_ms = 500;
+    millis_t last_present_ms = millis();
+    bool cleared = false;
+  #endif
+
   while (marlin.wait_for_user) {
     impatient_beep(max_beep_count);
+
+    #if ENABLED(FILAMENT_CHANGE_RESUME_ON_INSERT)
+      if (is_reload) {
+        const millis_t ms = millis();
+        if (active_filament_is_out()) {
+          if (ELAPSED(ms, last_present_ms + clear_ms)) cleared = true;
+        }
+        else if (cleared)
+          marlin.user_resume();
+        else
+          last_present_ms = ms;
+      }
+    #endif
 
     // If the nozzle has timed out...
     if (!nozzle_timed_out)
